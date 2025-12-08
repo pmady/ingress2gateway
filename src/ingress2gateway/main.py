@@ -1,8 +1,7 @@
 """FastAPI application for Ingress to Gateway API converter."""
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .converter import convert_ingress_to_gateway, parse_ingress, resources_to_yaml
@@ -182,7 +181,7 @@ spec:
             const btn = document.getElementById('convert-btn');
             const errorContainer = document.getElementById('error-container');
             const errorMessage = document.getElementById('error-message');
-            
+
             btn.disabled = true;
             btn.textContent = 'Converting...';
             errorContainer.classList.add('hidden');
