@@ -101,14 +101,16 @@ def convert_ingress_to_gateway(ingress: dict[str, Any]) -> dict[str, list[dict[s
 
     # If no listeners, add a default HTTP listener
     if not listeners:
-        listeners.append({
-            "name": "http",
-            "port": 80,
-            "protocol": "HTTP",
-            "allowedRoutes": {
-                "namespaces": {"from": "Same"},
-            },
-        })
+        listeners.append(
+            {
+                "name": "http",
+                "port": 80,
+                "protocol": "HTTP",
+                "allowedRoutes": {
+                    "namespaces": {"from": "Same"},
+                },
+            }
+        )
 
     # Build Gateway resource
     gateway = {
