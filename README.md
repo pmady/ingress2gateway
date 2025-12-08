@@ -1,5 +1,9 @@
 # Ingress to Gateway API Converter
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![CI](https://github.com/pmady/ingress2gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/pmady/ingress2gateway/actions/workflows/ci.yml)
+[![Documentation Status](https://readthedocs.org/projects/ingress2gateway/badge/?version=latest)](https://ingress2gateway.readthedocs.io/en/latest/?badge=latest)
+
 A web application to convert Kubernetes Ingress objects to Gateway API resources.
 
 ## Features
@@ -82,6 +86,12 @@ uv run ruff format .
 uv run ruff check .
 ```
 
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+All contributors must sign off their commits (DCO). See the contributing guide for instructions.
+
 ## License
 
-MIT
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
