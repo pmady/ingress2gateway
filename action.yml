@@ -1,0 +1,84 @@
+name: 'Ingress to Gateway API Converter'
+description: 'Convert Kubernetes Ingress resources to Gateway API resources'
+author: 'pmady'
+
+branding:
+  icon: 'refresh-cw'
+  color: 'blue'
+
+inputs:
+  input-file:
+    description: 'Path to input Ingress YAML file'
+    required: true
+  output-file:
+    description: 'Path to output Gateway API YAML file'
+    required: false
+    default: 'gateway-resources.yaml'
+  provider:
+    description: 'Gateway provider preset (istio, envoy, contour, kong, nginx, traefik, gke)'
+    required: false
+    default: 'istio'
+  detect-grpc:
+    description: 'Enable gRPC route detection'
+    required: false
+    default: 'false'
+  generate-report:
+    description: 'Generate migration report'
+    required: false
+    default: 'false'
+  report-file:
+    description: 'Path to migration report file'
+    required: false
+    default: 'migration-report.md'
+
+outputs:
+  gateway-yaml:
+    description: 'Path to generated Gateway API YAML file'
+    value: ${{ steps.convert.outputs.gateway-yaml }}
+  report:
+    description: 'Path to migration report (if generated)'
+    value: ${{ steps.convert.outputs.report }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install ingress2gateway
+      shell: bash
+      run: pip install ingress2gateway
+
+    - name: Convert Ingress to Gateway API
+      id: convert
+      shell: bash
+      run: |
+        ARGS="convert ${{ inputs.input-file }} -o ${{ inputs.output-file }} -p ${{ inputs.provider }}"
+
+        if [ "${{ inputs.detect-grpc }}" = "true" ]; then
+          ARGS="$ARGS --grpc"
+        fi
+
+        if [ "${{ inputs.generate-report }}" = "true" ]; then
+          ARGS="$ARGS --report ${{ inputs.report-file }}"
+          echo "report=${{ inputs.report-file }}" >> $GITHUB_OUTPUT
+        fi
+
+        ingress2gateway $ARGS
+
+        echo "gateway-yaml=${{ inputs.output-file }}" >> $GITHUB_OUTPUT
+
+    - name: Upload Gateway YAML as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: gateway-resources
+        path: ${{ inputs.output-file }}
+
+    - name: Upload Migration Report as artifact
+      if: ${{ inputs.generate-report == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: migration-report
+        path: ${{ inputs.report-file }}

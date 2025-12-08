@@ -3,15 +3,36 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI](https://github.com/pmady/ingress2gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/pmady/ingress2gateway/actions/workflows/ci.yml)
 [![Documentation Status](https://readthedocs.org/projects/ingress2gateway/badge/?version=latest)](https://ingress2gateway.readthedocs.io/en/latest/?badge=latest)
+[![PyPI version](https://badge.fury.io/py/ingress2gateway.svg)](https://badge.fury.io/py/ingress2gateway)
 
-A web application to convert Kubernetes Ingress objects to Gateway API resources.
+A comprehensive tool to convert Kubernetes Ingress objects to Gateway API resources with CLI, Web UI, and GitHub Action support.
 
 ## Features
 
-- **Web GUI**: Interactive interface with YAML editors
-- **REST API**: Programmatic conversion via `/api/convert` endpoint
-- **Real-time conversion**: Instant feedback with syntax highlighting
-- **Copy to clipboard**: Easy export of converted resources
+### Core Conversion
+- **Ingress → Gateway API**: Convert Ingress to Gateway + HTTPRoute resources
+- **Gateway API → Ingress**: Reverse conversion for migration rollback
+- **Multi-document YAML**: Process multiple Ingress resources at once
+- **GRPCRoute Support**: Automatic detection and conversion of gRPC backends
+
+### Annotation Support
+- **Nginx Ingress**: Rewrite rules, SSL redirect, CORS, rate limiting
+- **Traefik**: Middlewares, entrypoints, priorities
+- **Istio**: Ingress class, revision labels
+
+### Provider Presets
+- Istio, Envoy Gateway, Contour, Kong, NGINX Gateway Fabric, Traefik, GKE
+
+### User Interfaces
+- **Web GUI**: Interactive interface with dark/light theme, diff view, validation
+- **CLI Tool**: Full-featured command-line interface
+- **REST API**: Programmatic conversion endpoints
+- **GitHub Action**: CI/CD integration for automated conversion
+
+### Additional Features
+- **Validation**: Input and output schema validation
+- **Migration Reports**: Detailed markdown reports with manual steps
+- **Download Options**: Single YAML, separate files, or Kustomize structure
 
 ## Installation
 
@@ -49,14 +70,60 @@ uv run uvicorn src.ingress2gateway.main:app --reload --host 0.0.0.0 --port 8000
 
 4. Click "Convert" to generate Gateway API resources
 
-### API
+### CLI
 
 ```bash
+# Convert Ingress to Gateway API
+ingress2gateway convert ingress.yaml -o gateway.yaml
+
+# With provider preset
+ingress2gateway convert ingress.yaml -o gateway.yaml -p istio
+
+# Generate migration report
+ingress2gateway convert ingress.yaml -o gateway.yaml --report migration.md
+
+# Reverse conversion (Gateway API to Ingress)
+ingress2gateway reverse gateway.yaml -o ingress.yaml
+
+# Validate Ingress file
+ingress2gateway validate ingress.yaml
+
+# List available providers
+ingress2gateway providers
+
+# Start web server
+ingress2gateway serve --port 8000
+```
+
+### REST API
+
+```bash
+# Convert Ingress to Gateway API
 curl -X POST http://localhost:8000/api/convert \
   -H "Content-Type: application/json" \
-  -d '{
-    "ingress_yaml": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: example\nspec:\n  rules:\n    - host: example.com\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: my-service\n                port:\n                  number: 80"
-  }'
+  -d '{"ingress_yaml": "...", "provider": "istio"}'
+
+# Reverse conversion
+curl -X POST http://localhost:8000/api/reverse \
+  -H "Content-Type: application/json" \
+  -d '{"gateway_yaml": "..."}'
+
+# Validate
+curl -X POST http://localhost:8000/api/validate \
+  -H "Content-Type: application/json" \
+  -d '{"yaml_content": "...", "resource_type": "ingress"}'
+```
+
+### GitHub Action
+
+```yaml
+- name: Convert Ingress to Gateway API
+  uses: pmady/ingress2gateway@v1
+  with:
+    input-file: ingress.yaml
+    output-file: gateway.yaml
+    provider: istio
+    generate-report: true
 ```
 
 ## Conversion Mapping
