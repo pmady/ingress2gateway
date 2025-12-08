@@ -14,12 +14,16 @@ A comprehensive tool to convert Kubernetes Ingress objects to Gateway API resour
 - **Gateway API → Ingress**: Reverse conversion for migration rollback
 - **Multi-document YAML**: Process multiple Ingress resources at once
 - **GRPCRoute Support**: Automatic detection and conversion of gRPC backends
+- **TCPRoute/UDPRoute**: Support for TCP and UDP backend services
+- **ReferenceGrant**: Auto-generate ReferenceGrants for cross-namespace references
 
 ### Annotation Support
 
 - **Nginx Ingress**: Rewrite rules, SSL redirect, CORS, rate limiting
 - **Traefik**: Middlewares, entrypoints, priorities
 - **Istio**: Ingress class, revision labels
+- **AWS ALB**: Certificate ARN, target type, scheme, actions
+- **GCE/GKE**: Static IP, managed certificates, backend config
 
 ### Provider Presets
 
@@ -39,6 +43,8 @@ A comprehensive tool to convert Kubernetes Ingress objects to Gateway API resour
 - **CLI Tool**: Full-featured command-line interface
 - **REST API**: Programmatic conversion endpoints
 - **GitHub Action**: CI/CD integration for automated conversion
+- **kubectl Plugin**: Native kubectl integration
+- **Helm Chart**: Deploy web UI to Kubernetes
 
 ### Additional Features
 
@@ -112,7 +118,7 @@ ingress2gateway serve --port 8000
    ingress2gateway serve --port 8000
    ```
 
-2. Open http://localhost:8000 in your browser
+2. Open <http://localhost:8000> in your browser
 
 3. Paste your Ingress YAML in the left panel
 
@@ -218,6 +224,41 @@ jobs:
 | `detect-grpc` | Enable gRPC detection | No | `false` |
 | `generate-report` | Generate migration report | No | `false` |
 | `report-file` | Path to report file | No | `migration-report.md` |
+
+### kubectl Plugin
+
+Install the kubectl plugin for native kubectl integration:
+
+```bash
+# Download and install
+curl -LO https://github.com/pmady/ingress2gateway/releases/latest/download/kubectl-ingress2gateway
+chmod +x kubectl-ingress2gateway
+sudo mv kubectl-ingress2gateway /usr/local/bin/
+
+# Usage
+kubectl ingress2gateway convert my-ingress -n default
+kubectl ingress2gateway list -A
+kubectl ingress2gateway apply my-ingress -n default --dry-run
+kubectl ingress2gateway diff my-ingress -n default
+```
+
+### Helm Chart
+
+Deploy the web UI to your Kubernetes cluster:
+
+```bash
+# Add the Helm repository
+helm repo add ingress2gateway https://pmady.github.io/ingress2gateway
+helm repo update
+
+# Install
+helm install ingress2gateway ingress2gateway/ingress2gateway
+
+# With custom values
+helm install ingress2gateway ingress2gateway/ingress2gateway \
+  --set ingress.enabled=true \
+  --set ingress.hosts[0].host=ingress2gateway.example.com
+```
 
 ## Conversion Mapping
 

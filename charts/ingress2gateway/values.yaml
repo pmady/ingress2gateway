@@ -1,0 +1,86 @@
+# Default values for ingress2gateway
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/pmady/ingress2gateway
+  pullPolicy: IfNotPresent
+  tag: ""  # Defaults to chart appVersion
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: ingress2gateway.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Gateway API configuration (alternative to Ingress)
+gateway:
+  enabled: false
+  className: istio
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+  httproute:
+    hostnames: []
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Application configuration
+config:
+  # Default provider for conversions
+  defaultProvider: istio
+  # Enable debug logging
+  debug: false
+  # Log level (debug, info, warning, error)
+  logLevel: info

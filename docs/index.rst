@@ -14,6 +14,8 @@ A comprehensive tool to convert Kubernetes Ingress objects to Gateway API resour
    providers
    conversion-mapping
    github-action
+   kubectl-plugin
+   helm-chart
 
 Features
 --------
@@ -25,6 +27,8 @@ Core Conversion
 - **Gateway API → Ingress**: Reverse conversion for migration rollback
 - **Multi-document YAML**: Process multiple Ingress resources at once
 - **GRPCRoute Support**: Automatic detection and conversion of gRPC backends
+- **TCPRoute/UDPRoute**: Support for TCP and UDP backend services
+- **ReferenceGrant**: Auto-generate ReferenceGrants for cross-namespace references
 
 Annotation Support
 ~~~~~~~~~~~~~~~~~~
@@ -32,6 +36,8 @@ Annotation Support
 - **Nginx Ingress**: Rewrite rules, SSL redirect, CORS, rate limiting
 - **Traefik**: Middlewares, entrypoints, priorities
 - **Istio**: Ingress class, revision labels
+- **AWS ALB**: Certificate ARN, target type, scheme, actions
+- **GCE/GKE**: Static IP, managed certificates, backend config
 
 Provider Presets
 ~~~~~~~~~~~~~~~~
@@ -45,6 +51,8 @@ User Interfaces
 - **CLI Tool**: Full-featured command-line interface
 - **REST API**: Programmatic conversion endpoints
 - **GitHub Action**: CI/CD integration for automated conversion
+- **kubectl Plugin**: Native kubectl integration
+- **Helm Chart**: Deploy web UI to Kubernetes
 
 Additional Features
 ~~~~~~~~~~~~~~~~~~~

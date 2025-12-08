@@ -1,0 +1,311 @@
+#!/usr/bin/env python3
+"""kubectl plugin for ingress2gateway.
+
+Install by copying to a directory in your PATH and making it executable:
+    cp kubectl-ingress2gateway /usr/local/bin/
+    chmod +x /usr/local/bin/kubectl-ingress2gateway
+
+Usage:
+    kubectl ingress2gateway convert <ingress-name> [-n namespace]
+    kubectl ingress2gateway convert -f ingress.yaml
+    kubectl ingress2gateway list [-n namespace]
+    kubectl ingress2gateway apply <ingress-name> [-n namespace]
+"""
+
+import argparse
+import json
+import subprocess
+import sys
+from typing import Any
+
+try:
+    from ingress2gateway import (
+        convert_ingress_to_gateway,
+        resources_to_yaml,
+        apply_provider_defaults,
+    )
+    from ingress2gateway.reference_grant import generate_reference_grants
+except ImportError:
+    print("Error: ingress2gateway package not installed.", file=sys.stderr)
+    print("Install with: pip install ingress2gateway", file=sys.stderr)
+    sys.exit(1)
+
+
+def run_kubectl(args: list[str], capture: bool = True) -> subprocess.CompletedProcess:
+    """Run kubectl command."""
+    cmd = ["kubectl"] + args
+    if capture:
+        return subprocess.run(cmd, capture_output=True, text=True)
+    return subprocess.run(cmd)
+
+
+def get_ingress(name: str, namespace: str) -> dict[str, Any] | None:
+    """Get Ingress resource from cluster."""
+    result = run_kubectl(["get", "ingress", name, "-n", namespace, "-o", "json"])
+    if result.returncode != 0:
+        print(f"Error getting Ingress: {result.stderr}", file=sys.stderr)
+        return None
+    return json.loads(result.stdout)
+
+
+def list_ingresses(namespace: str | None) -> list[dict[str, Any]]:
+    """List Ingress resources in cluster."""
+    args = ["get", "ingress", "-o", "json"]
+    if namespace:
+        args.extend(["-n", namespace])
+    else:
+        args.append("-A")
+
+    result = run_kubectl(args)
+    if result.returncode != 0:
+        print(f"Error listing Ingresses: {result.stderr}", file=sys.stderr)
+        return []
+
+    data = json.loads(result.stdout)
+    return data.get("items", [])
+
+
+def convert_command(args: argparse.Namespace) -> int:
+    """Handle convert subcommand."""
+    ingress = None
+
+    if args.filename:
+        # Read from file
+        import yaml
+
+        with open(args.filename) as f:
+            ingress = yaml.safe_load(f)
+    elif args.name:
+        # Get from cluster
+        ingress = get_ingress(args.name, args.namespace)
+    else:
+        # Read from stdin
+        import yaml
+
+        ingress = yaml.safe_load(sys.stdin)
+
+    if not ingress:
+        print("Error: No Ingress resource provided", file=sys.stderr)
+        return 1
+
+    try:
+        resources = convert_ingress_to_gateway(ingress)
+
+        # Apply provider defaults
+        if args.provider:
+            resources["gateway"] = apply_provider_defaults(
+                resources["gateway"], args.provider
+            )
+
+        # Generate reference grants if needed
+        if args.reference_grants:
+            grants = generate_reference_grants(
+                resources["gateway"], resources["httproutes"]
+            )
+            resources["reference_grants"] = grants
+
+        # Output
+        yaml_output = resources_to_yaml(resources)
+
+        if args.output:
+            with open(args.output, "w") as f:
+                f.write(yaml_output)
+            print(f"Written to {args.output}")
+        else:
+            print(yaml_output)
+
+        return 0
+
+    except ValueError as e:
+        print(f"Error converting Ingress: {e}", file=sys.stderr)
+        return 1
+
+
+def list_command(args: argparse.Namespace) -> int:
+    """Handle list subcommand."""
+    ingresses = list_ingresses(args.namespace if not args.all_namespaces else None)
+
+    if not ingresses:
+        print("No Ingress resources found")
+        return 0
+
+    # Print table header
+    print(f"{'NAMESPACE':<20} {'NAME':<30} {'HOSTS':<40} {'CLASS':<15}")
+    print("-" * 105)
+
+    for ing in ingresses:
+        ns = ing.get("metadata", {}).get("namespace", "default")
+        name = ing.get("metadata", {}).get("name", "")
+        hosts = ",".join(
+            rule.get("host", "*") for rule in ing.get("spec", {}).get("rules", [])
+        )
+        ing_class = ing.get("spec", {}).get("ingressClassName", "<none>")
+
+        # Truncate long values
+        if len(hosts) > 38:
+            hosts = hosts[:35] + "..."
+
+        print(f"{ns:<20} {name:<30} {hosts:<40} {ing_class:<15}")
+
+    return 0
+
+
+def apply_command(args: argparse.Namespace) -> int:
+    """Handle apply subcommand - convert and apply to cluster."""
+    ingress = None
+
+    if args.filename:
+        import yaml
+
+        with open(args.filename) as f:
+            ingress = yaml.safe_load(f)
+    elif args.name:
+        ingress = get_ingress(args.name, args.namespace)
+    else:
+        print("Error: Provide Ingress name or -f filename", file=sys.stderr)
+        return 1
+
+    if not ingress:
+        return 1
+
+    try:
+        resources = convert_ingress_to_gateway(ingress)
+
+        if args.provider:
+            resources["gateway"] = apply_provider_defaults(
+                resources["gateway"], args.provider
+            )
+
+        yaml_output = resources_to_yaml(resources)
+
+        if args.dry_run:
+            print("# Dry run - would apply:")
+            print(yaml_output)
+            return 0
+
+        # Apply via kubectl
+        result = subprocess.run(
+            ["kubectl", "apply", "-f", "-"],
+            input=yaml_output,
+            text=True,
+            capture_output=True,
+        )
+
+        if result.returncode != 0:
+            print(f"Error applying resources: {result.stderr}", file=sys.stderr)
+            return 1
+
+        print(result.stdout)
+        return 0
+
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+def diff_command(args: argparse.Namespace) -> int:
+    """Handle diff subcommand - show what would change."""
+    ingress = None
+
+    if args.filename:
+        import yaml
+
+        with open(args.filename) as f:
+            ingress = yaml.safe_load(f)
+    elif args.name:
+        ingress = get_ingress(args.name, args.namespace)
+    else:
+        print("Error: Provide Ingress name or -f filename", file=sys.stderr)
+        return 1
+
+    if not ingress:
+        return 1
+
+    try:
+        resources = convert_ingress_to_gateway(ingress)
+
+        if args.provider:
+            resources["gateway"] = apply_provider_defaults(
+                resources["gateway"], args.provider
+            )
+
+        yaml_output = resources_to_yaml(resources)
+
+        # Use kubectl diff
+        result = subprocess.run(
+            ["kubectl", "diff", "-f", "-"],
+            input=yaml_output,
+            text=True,
+        )
+
+        return result.returncode
+
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+def main() -> int:
+    """Main entry point."""
+    parser = argparse.ArgumentParser(
+        prog="kubectl-ingress2gateway",
+        description="Convert Kubernetes Ingress to Gateway API resources",
+    )
+    subparsers = parser.add_subparsers(dest="command", help="Commands")
+
+    # Convert command
+    convert_parser = subparsers.add_parser("convert", help="Convert Ingress to Gateway API")
+    convert_parser.add_argument("name", nargs="?", help="Ingress resource name")
+    convert_parser.add_argument("-f", "--filename", help="Ingress YAML file")
+    convert_parser.add_argument(
+        "-n", "--namespace", default="default", help="Namespace"
+    )
+    convert_parser.add_argument("-o", "--output", help="Output file")
+    convert_parser.add_argument("-p", "--provider", help="Provider preset")
+    convert_parser.add_argument(
+        "--reference-grants",
+        action="store_true",
+        help="Generate ReferenceGrants for cross-namespace refs",
+    )
+    convert_parser.set_defaults(func=convert_command)
+
+    # List command
+    list_parser = subparsers.add_parser("list", help="List Ingress resources")
+    list_parser.add_argument("-n", "--namespace", help="Namespace")
+    list_parser.add_argument(
+        "-A", "--all-namespaces", action="store_true", help="All namespaces"
+    )
+    list_parser.set_defaults(func=list_command)
+
+    # Apply command
+    apply_parser = subparsers.add_parser(
+        "apply", help="Convert and apply Gateway resources"
+    )
+    apply_parser.add_argument("name", nargs="?", help="Ingress resource name")
+    apply_parser.add_argument("-f", "--filename", help="Ingress YAML file")
+    apply_parser.add_argument("-n", "--namespace", default="default", help="Namespace")
+    apply_parser.add_argument("-p", "--provider", help="Provider preset")
+    apply_parser.add_argument(
+        "--dry-run", action="store_true", help="Print without applying"
+    )
+    apply_parser.set_defaults(func=apply_command)
+
+    # Diff command
+    diff_parser = subparsers.add_parser("diff", help="Show diff of converted resources")
+    diff_parser.add_argument("name", nargs="?", help="Ingress resource name")
+    diff_parser.add_argument("-f", "--filename", help="Ingress YAML file")
+    diff_parser.add_argument("-n", "--namespace", default="default", help="Namespace")
+    diff_parser.add_argument("-p", "--provider", help="Provider preset")
+    diff_parser.set_defaults(func=diff_command)
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        return 1
+
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
