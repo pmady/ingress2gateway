@@ -9,7 +9,7 @@ The web interface provides an interactive way to convert Ingress resources with 
 1. **Start the server**
 
    ```bash
-   ingress2gateway serve --port 8000
+   i2g serve --port 8000
    ```
 
 2. **Open the browser** at <http://localhost:8000>
@@ -53,13 +53,13 @@ The web interface provides an interactive way to convert Ingress resources with 
 
 ```bash
 # Convert single file
-ingress2gateway convert ingress.yaml -o gateway.yaml
+i2g convert ingress.yaml -o gateway.yaml
 
 # Convert with provider preset
-ingress2gateway convert ingress.yaml -o gateway.yaml -p envoy
+i2g convert ingress.yaml -o gateway.yaml -p envoy
 
 # Convert with gRPC detection
-ingress2gateway convert ingress.yaml -o gateway.yaml --grpc
+i2g convert ingress.yaml -o gateway.yaml --grpc
 ```
 
 ### Multi-Document YAML
@@ -104,7 +104,7 @@ spec:
 ```
 
 ```bash
-ingress2gateway convert multi-ingress.yaml -o gateway.yaml
+i2g convert multi-ingress.yaml -o gateway.yaml
 ```
 
 ### Migration Reports
@@ -112,7 +112,7 @@ ingress2gateway convert multi-ingress.yaml -o gateway.yaml
 Generate detailed migration reports:
 
 ```bash
-ingress2gateway convert ingress.yaml -o gateway.yaml --report migration.md
+i2g convert ingress.yaml -o gateway.yaml --report migration.md
 ```
 
 The report includes:
@@ -128,7 +128,7 @@ The report includes:
 Convert Gateway API resources back to Ingress:
 
 ```bash
-ingress2gateway reverse gateway.yaml -o ingress.yaml
+i2g reverse gateway.yaml -o ingress.yaml
 ```
 
 This is useful for:
@@ -142,7 +142,7 @@ This is useful for:
 Validate Ingress files before conversion:
 
 ```bash
-ingress2gateway validate ingress.yaml
+i2g validate ingress.yaml
 ```
 
 Output shows errors and warnings:

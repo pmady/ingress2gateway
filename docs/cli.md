@@ -1,6 +1,15 @@
 # CLI Reference
 
-The `ingress2gateway` CLI provides a full-featured command-line interface for converting Ingress resources to Gateway API.
+The CLI provides a full-featured command-line interface for converting Ingress resources to Gateway API.
+
+## Command Names
+
+The CLI is available under two names:
+
+- **`i2g`** - Short, convenient name (recommended)
+- **`ingress2gateway`** - Full name (for backward compatibility)
+
+Both commands are identical and can be used interchangeably.
 
 ## Installation
 
@@ -15,7 +24,7 @@ pip install ingress2gateway
 Convert Ingress YAML to Gateway API resources.
 
 ```bash
-ingress2gateway convert [OPTIONS] INPUT_FILE
+i2g convert [OPTIONS] INPUT_FILE
 ```
 
 **Arguments:**
@@ -37,19 +46,19 @@ ingress2gateway convert [OPTIONS] INPUT_FILE
 
 ```bash
 # Basic conversion
-ingress2gateway convert ingress.yaml -o gateway.yaml
+i2g convert ingress.yaml -o gateway.yaml
 
 # With Envoy Gateway provider
-ingress2gateway convert ingress.yaml -o gateway.yaml -p envoy
+i2g convert ingress.yaml -o gateway.yaml -p envoy
 
 # Enable gRPC detection
-ingress2gateway convert ingress.yaml -o gateway.yaml --grpc
+i2g convert ingress.yaml -o gateway.yaml --grpc
 
 # Generate migration report
-ingress2gateway convert ingress.yaml -o gateway.yaml --report migration.md
+i2g convert ingress.yaml -o gateway.yaml --report migration.md
 
 # Quiet mode (only output YAML)
-ingress2gateway convert ingress.yaml -q > gateway.yaml
+i2g convert ingress.yaml -q > gateway.yaml
 ```
 
 ### reverse
@@ -57,7 +66,7 @@ ingress2gateway convert ingress.yaml -q > gateway.yaml
 Convert Gateway API resources back to Ingress (reverse conversion).
 
 ```bash
-ingress2gateway reverse [OPTIONS] INPUT_FILE
+i2g reverse [OPTIONS] INPUT_FILE
 ```
 
 **Arguments:**
@@ -75,10 +84,10 @@ ingress2gateway reverse [OPTIONS] INPUT_FILE
 
 ```bash
 # Reverse conversion
-ingress2gateway reverse gateway.yaml -o ingress.yaml
+i2g reverse gateway.yaml -o ingress.yaml
 
 # Output to stdout
-ingress2gateway reverse gateway.yaml -q
+i2g reverse gateway.yaml -q
 ```
 
 ### validate
@@ -86,7 +95,7 @@ ingress2gateway reverse gateway.yaml -q
 Validate an Ingress YAML file.
 
 ```bash
-ingress2gateway validate INPUT_FILE
+i2g validate INPUT_FILE
 ```
 
 **Arguments:**
@@ -97,10 +106,10 @@ ingress2gateway validate INPUT_FILE
 
 ```bash
 # Validate Ingress file
-ingress2gateway validate ingress.yaml
+i2g validate ingress.yaml
 
 # Use in CI/CD (exits with code 1 on failure)
-ingress2gateway validate ingress.yaml || echo "Validation failed"
+i2g validate ingress.yaml || echo "Validation failed"
 ```
 
 **Output:**
@@ -117,7 +126,7 @@ Warnings:
 List available provider presets.
 
 ```bash
-ingress2gateway providers
+i2g providers
 ```
 
 **Output:**
@@ -141,7 +150,7 @@ ingress2gateway providers
 Start the web UI server.
 
 ```bash
-ingress2gateway serve [OPTIONS]
+i2g serve [OPTIONS]
 ```
 
 **Options:**
@@ -156,13 +165,13 @@ ingress2gateway serve [OPTIONS]
 
 ```bash
 # Start server on default port
-ingress2gateway serve
+i2g serve
 
 # Custom port
-ingress2gateway serve --port 3000
+i2g serve --port 3000
 
 # Development mode with auto-reload
-ingress2gateway serve --reload
+i2g serve --reload
 ```
 
 ## Exit Codes
@@ -186,13 +195,13 @@ The CLI is designed to work well in scripts and pipelines:
 
 ```bash
 # Pipe from kubectl
-kubectl get ingress my-ingress -o yaml | ingress2gateway convert - -q > gateway.yaml
+kubectl get ingress my-ingress -o yaml | i2g convert - -q > gateway.yaml
 
 # Process multiple files
 for f in ingresses/*.yaml; do
-  ingress2gateway convert "$f" -o "gateways/$(basename $f)" -q
+  i2g convert "$f" -o "gateways/$(basename $f)" -q
 done
 
 # Validate all ingresses
-find . -name "ingress*.yaml" -exec ingress2gateway validate {} \;
+find . -name "ingress*.yaml" -exec i2g validate {} \;
 ```

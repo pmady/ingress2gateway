@@ -84,30 +84,32 @@ pip install -e .
 
 ### CLI Usage
 
+The CLI is available as `i2g` (short) or `ingress2gateway` (full name):
+
 ```bash
 # Basic conversion
-ingress2gateway convert ingress.yaml -o gateway.yaml
+i2g convert ingress.yaml -o gateway.yaml
 
 # With provider preset
-ingress2gateway convert ingress.yaml -o gateway.yaml -p istio
+i2g convert ingress.yaml -o gateway.yaml -p istio
 
 # Enable gRPC detection
-ingress2gateway convert ingress.yaml -o gateway.yaml --grpc
+i2g convert ingress.yaml -o gateway.yaml --grpc
 
 # Generate migration report
-ingress2gateway convert ingress.yaml -o gateway.yaml --report migration.md
+i2g convert ingress.yaml -o gateway.yaml --report migration.md
 
 # Reverse conversion (Gateway API to Ingress)
-ingress2gateway reverse gateway.yaml -o ingress.yaml
+i2g reverse gateway.yaml -o ingress.yaml
 
 # Validate Ingress file
-ingress2gateway validate ingress.yaml
+i2g validate ingress.yaml
 
 # List available providers
-ingress2gateway providers
+i2g providers
 
 # Start web server
-ingress2gateway serve --port 8000
+i2g serve --port 8000
 ```
 
 ### Web Interface
@@ -115,7 +117,7 @@ ingress2gateway serve --port 8000
 1. Start the server:
 
    ```bash
-   ingress2gateway serve --port 8000
+   i2g serve --port 8000
    ```
 
 2. Open <http://localhost:8000> in your browser

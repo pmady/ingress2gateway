@@ -47,22 +47,22 @@ pip install -e .
 
 ```bash
 # Convert Ingress to Gateway API
-ingress2gateway convert ingress.yaml -o gateway.yaml
+i2g convert ingress.yaml -o gateway.yaml
 
 # With provider preset
-ingress2gateway convert ingress.yaml -o gateway.yaml -p istio
+i2g convert ingress.yaml -o gateway.yaml -p istio
 
 # Reverse conversion
-ingress2gateway reverse gateway.yaml -o ingress.yaml
+i2g reverse gateway.yaml -o ingress.yaml
 
 # Validate
-ingress2gateway validate ingress.yaml
+i2g validate ingress.yaml
 
 # List providers
-ingress2gateway providers
+i2g providers
 
 # Start web server
-ingress2gateway serve --port 8000
+i2g serve --port 8000
 ```
 
 ### Web UI
@@ -70,7 +70,7 @@ ingress2gateway serve --port 8000
 Start the server and open your browser:
 
 ```bash
-ingress2gateway serve --port 8000
+i2g serve --port 8000
 ```
 
 Then navigate to <http://localhost:8000>

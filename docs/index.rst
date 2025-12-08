@@ -69,11 +69,11 @@ Quick Start
    # Install
    pip install ingress2gateway
 
-   # CLI usage
-   ingress2gateway convert ingress.yaml -o gateway.yaml
+   # CLI usage (i2g is the short command name)
+   i2g convert ingress.yaml -o gateway.yaml
 
    # Start web server
-   ingress2gateway serve --port 8000
+   i2g serve --port 8000
 
 Then open http://localhost:8000 in your browser.
 

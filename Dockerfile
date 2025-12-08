@@ -18,5 +18,5 @@ USER appuser
 
 EXPOSE 8000
 
-ENTRYPOINT ["ingress2gateway"]
+ENTRYPOINT ["i2g"]
 CMD ["serve", "--host", "0.0.0.0", "--port", "8000"]

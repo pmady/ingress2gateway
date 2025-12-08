@@ -16,7 +16,8 @@ dependencies = [
 ]
 
 [project.scripts]
-ingress2gateway = "ingress2gateway.cli:main"
+i2g = "ingress2gateway.cli:main"
+ingress2gateway = "ingress2gateway.cli:main"  # Alias for backward compatibility
 
 [project.optional-dependencies]
 dev = [
