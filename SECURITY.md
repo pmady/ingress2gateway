@@ -29,6 +29,7 @@ If you discover a security vulnerability, please report it by:
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 0.2.x   | :white_check_mark: |
 | 0.1.x   | :white_check_mark: |
 
 ## Security Best Practices
