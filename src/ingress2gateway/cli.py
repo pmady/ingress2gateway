@@ -1,4 +1,9 @@
-"""Command-line interface for ingress2gateway."""
+"""Command-line interface for ingress2gateway.
+
+This module provides the CLI for converting Kubernetes Ingress resources
+to Gateway API resources. It supports multiple providers, validation,
+gRPC detection, and migration report generation.
+"""
 
 import sys
 from pathlib import Path
@@ -220,10 +225,22 @@ def _convert_yaml(
     do_validate: bool,
     quiet: bool,
 ) -> tuple[dict[str, Any], dict[str, Any], list[str], list[dict[str, str]]] | None:
-    """
-    Convert YAML content and return resources.
+    """Convert YAML content and return Gateway API resources.
 
-    Returns tuple of (resources, ingress, warnings, unsupported) or None on error.
+    This is the core conversion function that handles multi-document YAML,
+    validates input/output, parses annotations, and applies provider defaults.
+
+    Args:
+        yaml_content: Raw YAML string containing one or more Ingress resources.
+        provider: Gateway provider preset (e.g., 'istio', 'nginx', 'envoy').
+        detect_grpc: Whether to detect and convert gRPC backends to GRPCRoutes.
+        do_validate: Whether to validate input and output resources.
+        quiet: Whether to suppress informational console output.
+
+    Returns:
+        A tuple of (resources, ingress, warnings, unsupported) on success,
+        or None if conversion fails. Resources contains 'gateway', 'httproutes',
+        and 'grpcroutes' keys.
     """
     # Handle multi-document YAML
     try:
