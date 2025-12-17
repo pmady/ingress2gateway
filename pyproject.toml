@@ -21,14 +21,6 @@ classifiers = [
     "Topic :: System :: Systems Administration",
     "Topic :: Utilities",
 ]
-
-[project.urls]
-Homepage = "https://github.com/pmady/ingress2gateway"
-Documentation = "https://ingress2gateway.readthedocs.io"
-Repository = "https://github.com/pmady/ingress2gateway.git"
-Issues = "https://github.com/pmady/ingress2gateway/issues"
-Changelog = "https://github.com/pmady/ingress2gateway/releases"
-
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn>=0.32.0",
@@ -39,6 +31,13 @@ dependencies = [
     "rich>=13.0.0",
     "jsonschema>=4.20.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/pmady/ingress2gateway"
+Documentation = "https://github.com/pmady/ingress2gateway#readme"
+Repository = "https://github.com/pmady/ingress2gateway.git"
+Issues = "https://github.com/pmady/ingress2gateway/issues"
+Changelog = "https://github.com/pmady/ingress2gateway/releases"
 
 [project.scripts]
 i2g = "ingress2gateway.cli:main"
