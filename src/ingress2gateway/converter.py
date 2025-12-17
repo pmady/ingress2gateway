@@ -1,4 +1,9 @@
-"""Core converter logic for Ingress to Gateway API."""
+"""Core converter logic for Ingress to Gateway API.
+
+This module provides the main conversion functionality to transform
+Kubernetes Ingress resources into Gateway API resources (Gateway and HTTPRoute).
+It handles TLS configuration, path matching, and backend service references.
+"""
 
 from typing import Any
 
@@ -6,14 +11,31 @@ import yaml
 
 
 def _parse_port(port_value: Any) -> int:
-    """Parse port value to integer, defaulting to 80."""
+    """Parse port value to integer, defaulting to 80.
+
+    Args:
+        port_value: The port value which can be a string, integer, or None.
+
+    Returns:
+        The parsed port as an integer, defaults to 80 if invalid or empty.
+    """
     if port_value and str(port_value).isdigit():
         return int(port_value)
     return 80
 
 
 def parse_ingress(ingress_yaml: str) -> dict[str, Any]:
-    """Parse Ingress YAML string into a dictionary."""
+    """Parse Ingress YAML string into a dictionary.
+
+    Args:
+        ingress_yaml: A YAML string containing a Kubernetes Ingress resource.
+
+    Returns:
+        A dictionary representation of the Ingress resource.
+
+    Raises:
+        ValueError: If the YAML is invalid or cannot be parsed.
+    """
     try:
         return yaml.safe_load(ingress_yaml)
     except yaml.YAMLError as e:
@@ -21,10 +43,26 @@ def parse_ingress(ingress_yaml: str) -> dict[str, Any]:
 
 
 def convert_ingress_to_gateway(ingress: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
-    """
-    Convert a Kubernetes Ingress object to Gateway API resources.
+    """Convert a Kubernetes Ingress object to Gateway API resources.
 
-    Returns a dictionary with 'gateway' and 'httproutes' keys.
+    This function transforms a Kubernetes Ingress resource into equivalent
+    Gateway API resources, including a Gateway and one or more HTTPRoutes.
+
+    Args:
+        ingress: A dictionary representing a Kubernetes Ingress resource.
+
+    Returns:
+        A dictionary containing:
+            - 'gateway': The Gateway resource definition
+            - 'httproutes': A list of HTTPRoute resource definitions
+
+    Raises:
+        ValueError: If the ingress is empty or not of kind 'Ingress'.
+
+    Example:
+        >>> ingress = parse_ingress(yaml_content)
+        >>> resources = convert_ingress_to_gateway(ingress)
+        >>> print(resources['gateway']['metadata']['name'])
     """
     if not ingress:
         raise ValueError("Empty ingress object")
@@ -252,6 +290,13 @@ def convert_ingress_to_gateway(ingress: dict[str, Any]) -> dict[str, list[dict[s
 
 
 def resources_to_yaml(resources: dict[str, Any]) -> str:
-    """Convert Gateway API resources to YAML string."""
+    """Convert Gateway API resources to YAML string.
+
+    Args:
+        resources: A dictionary containing 'gateway' and 'httproutes' keys.
+
+    Returns:
+        A multi-document YAML string with all resources separated by '---'.
+    """
     documents = [resources["gateway"]] + resources["httproutes"]
     return yaml.dump_all(documents, default_flow_style=False, sort_keys=False)
