@@ -1,4 +1,9 @@
-"""Validation for Ingress and Gateway API resources."""
+"""Validation for Ingress and Gateway API resources.
+
+This module provides comprehensive validation for Kubernetes Ingress resources
+and Gateway API resources (Gateway, HTTPRoute, GRPCRoute). It checks for required
+fields, valid API versions, and structural correctness.
+"""
 
 from typing import Any
 
@@ -9,7 +14,13 @@ HTTPROUTE_REQUIRED_FIELDS = ["apiVersion", "kind", "metadata", "spec"]
 
 
 class ValidationError:
-    """Represents a validation error."""
+    """Represents a validation error or warning.
+
+    Attributes:
+        path: The JSON path to the field with the issue (e.g., 'spec.rules[0]').
+        message: A human-readable description of the issue.
+        severity: The severity level ('error', 'warning', or 'info').
+    """
 
     def __init__(self, path: str, message: str, severity: str = "error"):
         self.path = path
@@ -24,7 +35,12 @@ class ValidationError:
 
 
 class ValidationResult:
-    """Result of validation."""
+    """Result of validation containing errors and warnings.
+
+    Attributes:
+        errors: List of validation errors that indicate invalid resources.
+        warnings: List of validation warnings that indicate potential issues.
+    """
 
     def __init__(self):
         self.errors: list[ValidationError] = []
@@ -49,7 +65,17 @@ class ValidationResult:
 
 
 def validate_ingress(ingress: dict[str, Any]) -> ValidationResult:
-    """Validate an Ingress resource."""
+    """Validate a Kubernetes Ingress resource.
+
+    Checks for required fields, valid API version, proper structure,
+    and validates rules and TLS configuration.
+
+    Args:
+        ingress: A dictionary representing a Kubernetes Ingress resource.
+
+    Returns:
+        ValidationResult containing any errors or warnings found.
+    """
     result = ValidationResult()
 
     if not ingress:
@@ -130,7 +156,17 @@ def _validate_ingress_tls(tls: dict[str, Any], path: str, result: ValidationResu
 
 
 def validate_gateway(gateway: dict[str, Any]) -> ValidationResult:
-    """Validate a Gateway resource."""
+    """Validate a Gateway API Gateway resource.
+
+    Checks for required fields, valid API version, gatewayClassName,
+    and listener configuration.
+
+    Args:
+        gateway: A dictionary representing a Gateway resource.
+
+    Returns:
+        ValidationResult containing any errors or warnings found.
+    """
     result = ValidationResult()
 
     if not gateway:
@@ -173,7 +209,16 @@ def validate_gateway(gateway: dict[str, Any]) -> ValidationResult:
 
 
 def validate_httproute(route: dict[str, Any]) -> ValidationResult:
-    """Validate an HTTPRoute resource."""
+    """Validate a Gateway API HTTPRoute resource.
+
+    Checks for required fields, parentRefs, and rule configuration.
+
+    Args:
+        route: A dictionary representing an HTTPRoute resource.
+
+    Returns:
+        ValidationResult containing any errors or warnings found.
+    """
     result = ValidationResult()
 
     if not route:
@@ -208,7 +253,19 @@ def validate_httproute(route: dict[str, Any]) -> ValidationResult:
 
 
 def validate_conversion_output(resources: dict[str, Any]) -> ValidationResult:
-    """Validate the complete conversion output."""
+    """Validate the complete conversion output including all resources.
+
+    Validates the Gateway, all HTTPRoutes, and all GRPCRoutes in the
+    conversion output.
+
+    Args:
+        resources: A dictionary containing 'gateway', 'httproutes', and
+            optionally 'grpcroutes' keys.
+
+    Returns:
+        ValidationResult containing aggregated errors and warnings from
+        all resources.
+    """
     result = ValidationResult()
 
     # Validate gateway
